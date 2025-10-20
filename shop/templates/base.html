@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Moja aplikacja{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 2rem; }
+        .container { max-width: 480px; margin: 0 auto; }
+        form > div { margin-bottom: .8rem; }
+        .messages { margin-bottom: 1rem; color: #b00; }
+        nav a, nav form { margin-right: .8rem; display: inline; }
+        .as-link { background: none; border: none; padding: 0; color: #06c; text-decoration: underline; cursor: pointer; font: inherit; }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="{% url 'home' %}">Strona główna</a>
+    {% if user.is_authenticated %}
+        <span>Jesteś zalogowany jako: {{ user.username }}</span>
+        <form method="post" action="{% url 'logout' %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="as-link">Wyloguj</button>
+        </form>
+    {% else %}
+        <a href="{% url 'login' %}">Zaloguj</a>
+        <a href="{% url 'signup' %}">Zarejestruj</a>
+    {% endif %}
+</nav>
+
+<div class="container">
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div>{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+</div>
+</body>
+</html>
