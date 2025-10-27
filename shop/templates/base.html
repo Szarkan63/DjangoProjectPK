@@ -1,42 +1,53 @@
-<!doctype html>
-<html lang="pl">
+{% load static %}
+<!DOCTYPE html>
+<html lang="pl" data-theme="swit">
 <head>
     <meta charset="utf-8">
-    <title>{% block title %}Moja aplikacja{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body { font-family: system-ui, sans-serif; margin: 2rem; }
-        .container { max-width: 480px; margin: 0 auto; }
-        form > div { margin-bottom: .8rem; }
-        .messages { margin-bottom: 1rem; color: #b00; }
-        nav a, nav form { margin-right: .8rem; display: inline; }
-        .as-link { background: none; border: none; padding: 0; color: #06c; text-decoration: underline; cursor: pointer; font: inherit; }
-    </style>
+    <title>{% block title %}Aplikacja{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-<nav>
-    <a href="{% url 'home' %}">Strona główna</a>
-    {% if user.is_authenticated %}
-        <span>Jesteś zalogowany jako: {{ user.username }}</span>
-        <form method="post" action="{% url 'logout' %}" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" class="as-link">Wyloguj</button>
-        </form>
-    {% else %}
-        <a href="{% url 'login' %}">Zaloguj</a>
-        <a href="{% url 'signup' %}">Zarejestruj</a>
-    {% endif %}
-</nav>
+<header class="site-header">
+    <div class="nav">
+        <a class="brand" href="{% url 'home' %}">MemShop</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'sell' %}" class="nav-link">Sprzedaj Mema</a>
+            <a href="{% url 'browse_products' %}" class="nav-link">Przeglądaj Memy</a>
+        {% endif %}
+    </div>
+    <div class="nav">
+        {% if user.is_authenticated %}
+            {% if user.is_staff %}
+                <a href="{% url 'admin_panel' %}" class="nav-link">Panel Administratora</a>
+            {% endif %}
+            <form action="{% url 'logout' %}" method="post" style="margin-bottom: 0;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-ghost">Wyloguj</button>
+            </form>
+        {% else %}
+            <a href="{% url 'login' %}" class="nav-link">Zaloguj</a>
+            <a href="{% url 'signup' %}" class="btn btn-primary">Zarejestruj</a>
+        {% endif %}
+    </div>
+</header>
 
-<div class="container">
-    {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-                <div>{{ message }}</div>
-            {% endfor %}
-        </div>
-    {% endif %}
+<main>
     {% block content %}{% endblock %}
+</main>
+
+<!-- Przełącznik motywu w lewym dolnym rogu -->
+<div class="theme-switcher" aria-label="Wybór motywu">
+    <label for="theme-select" class="sr-only">Motyw</label>
+    <select id="theme-select" class="input">
+        <option value="swit">Świt (jasny)</option>
+        <option value="zmierzch">Zmierzch (pół-jasny)</option>
+        <option value="noc">Noc (ciemny)</option>
+    </select>
 </div>
+
+<script src="{% static 'js/theme.js' %}"></script>
 </body>
 </html>

@@ -1,27 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body><!-- templates/registration/login.html -->
 {% extends "base.html" %}
 {% block title %}Logowanie{% endblock %}
 {% block content %}
-    <h1>Logowanie</h1>
-    <form method="post" novalidate>
-        {% csrf_token %}
-        <div>
-            <label for="id_username">Nazwa użytkownika</label>
-            <input type="text" name="username" autofocus required id="id_username">
+    <section class="auth-wrap">
+        <div class="card auth-card">
+            <h1 class="card-title">Logowanie</h1>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                <div class="form-field">
+                    <label for="{{ form.username.id_for_label }}">Nazwa użytkownika</label>
+                    {{ form.username }}
+                    <div class="field-error">{{ form.username.errors }}</div>
+                </div>
+                <div class="form-field">
+                    <label for="{{ form.password.id_for_label }}">Hasło</label>
+                    {{ form.password }}
+                    <div class="field-error">{{ form.password.errors }}</div>
+                </div>
+                <button class="btn btn-primary" type="submit">Zaloguj się</button>
+            </form>
+            <p class="muted mt-sm">Nie masz konta?
+                <a class="link" href="{% url 'signup' %}">Zarejestruj się</a>
+            </p>
         </div>
-        <div>
-            <label for="id_password">Hasło</label>
-            <input type="password" name="password" required id="id_password">
-        </div>
-        <button type="submit">Zaloguj</button>
-    </form>
-    <p>Nie masz konta? <a href="{% url 'signup' %}">Zarejestruj się</a></p>
+    </section>
 {% endblock %}
-</body>
-</html>

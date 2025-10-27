@@ -1,0 +1,26 @@
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.card-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    /* Używamy zmiennej --radius zdefiniowanej w theme.css */
+    border-top-left-radius: var(--radius);
+    border-top-right-radius: var(--radius);
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.price {
+    font-size: 1.25rem;
+    font-weight: bold;
+}

@@ -14,23 +14,27 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.contrib.auth import views as auth_views
+
+from DjangoProjectPK import settings
 from shop import views as shop_views
 
 urlpatterns = [
+    # 1. Panel administratora
     path('admin/', admin.site.urls),
 
-    # Strona główna
-    path('', shop_views.home, name='home'),
+    # 2. Ścieżki uwierzytelniania (logowanie/wylogowanie) zgrupowane pod 'accounts/'
+    path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('accounts/logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
 
-    # Logowanie / wylogowanie (wbudowane widoki Django)
-    path('accounts/login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login')
-    ,
-    path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
-
-    # Rejestracja
-    path('accounts/signup/', shop_views.signup, name='signup'),
+    # 3. Dołączenie wszystkich adresów z aplikacji 'shop'
+    path('', include('shop.urls')),
 ]
+
+# Konfiguracja do serwowania plików (np. obrazków) w trybie deweloperskim
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

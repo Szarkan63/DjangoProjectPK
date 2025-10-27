@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Panel Administratora{% endblock %}
+
+{% block content %}
+    <section class="content-wrap">
+        <h1>Panel Administratora</h1>
+        <h2 class="mb-lg">Produkty do zatwierdzenia</h2>
+
+        {% if products_to_approve %}
+            <div class="product-approval-list">
+                {% for product in products_to_approve %}
+                    <div class="card mb-md">
+                        <div class="card-content">
+                            <h3 class="card-title">{{ product.name }}</h3>
+                            <p><strong>Autor:</strong> {{ product.author.username }}</p>
+                            <p><strong>Cena:</strong> {{ product.price }} PLN</p>
+                            <p><strong>Opis:</strong></p>
+                            <div>{{ product.description|safe }}</div>
+
+                            {% if product.image %}
+                                <div class="mt-sm">
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" style="max-width: 200px; height: auto;">
+                                </div>
+                            {% endif %}
+
+                            <div class="mt-md">
+                                <form method="post" action="{% url 'approve_product' product.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary">Zatwierdź</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Wszystkie produkty są zatwierdzone. Brak ogłoszeń do akceptacji.</p>
+        {% endif %}
+    </section>
+{% endblock %}

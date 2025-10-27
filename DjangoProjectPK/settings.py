@@ -26,6 +26,8 @@ SECRET_KEY = 'django-insecure-o1=)zwe9b+i3bbmian%21ql5@yx*oi_hv528=*4vld&0z#=soz
 DEBUG = True
 
 ALLOWED_HOSTS = []
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Używane przez system logowania
 LOGIN_URL = 'login'

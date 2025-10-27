@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Przeglądaj Memy{% endblock %}
+
+{% block extra_css %}
+    {# Dołączamy nasz nowy arkusz stylów #}
+    <link rel="stylesheet" href="{% static 'css/product_grid.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="content-wrap">
+    <h1>Przeglądaj Memy</h1>
+    <p class="mb-lg">Oto najnowsze memy wystawione na sprzedaż. Wybierz coś dla siebie!</p>
+
+    {% if products %}
+        <div class="product-grid">
+            {% for product in products %}
+                <div class="card">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-image">
+                    {% endif %}
+                    <div class="card-content">
+                        <h3 class="card-title">{{ product.name }}</h3>
+                        <p class="muted">Sprzedający: {{ product.author.username }}</p>
+                        <div class="card-footer">
+                            <span class="price">{{ product.price }} PLN</span>
+                            <button class="btn btn-primary">Kup</button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Wygląda na to, że nie ma jeszcze żadnych memów na sprzedaż. Bądź pierwszy i <a href="{% url 'sell' %}">wystaw coś na sprzedaż</a>!</p>
+    {% endif %}
+</section>
+
+{# Usunęliśmy stąd cały blok <style> #}
+{% endblock %}
