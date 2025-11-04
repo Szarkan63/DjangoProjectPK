@@ -54,7 +54,7 @@ class Product(models.Model):
     """
     Model produktu (lub posta).
     """
-    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products', verbose_name='Kategoria', null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products', verbose_name='Kategoria')
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Autor')
     name = models.CharField(max_length=200, verbose_name='Nazwa')
     description = models.TextField(verbose_name='Opis (obsługuje HTML)', blank=True)
@@ -129,6 +129,10 @@ class Cart(models.Model):
     def __str__(self):
         return f'Koszyk użytkownika {self.user.username}'
 
+    @property
+    def total_price(self):
+        return sum(item.total_price for item in self.items.all())
+
 
 class CartItem(models.Model):
     """
@@ -140,6 +144,10 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f'{self.quantity} x {self.product.name}'
+
+    @property
+    def total_price(self):
+        return self.quantity * self.product.price
 
 
 class Notification(models.Model):

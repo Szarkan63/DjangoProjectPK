@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Twój Koszyk - MemShop{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cart.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="cart-container">
+    <div class="cart-card">
+        <h1 class="card-title">Twój koszyk</h1>
+
+        {% if cart.items.all %}
+            <div class="table-responsive">
+                <table class="cart-table">
+                    <thead>
+                        <tr>
+                            <th>Produkt</th>
+                            <th style="text-align: center;">Ilość</th>
+                            <th style="text-align: right;">Cena</th>
+                            <th style="text-align: right;">Suma</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart.items.all %}
+                        <tr>
+                            <td>
+                                <div class="product-cell">
+                                    {% if item.product.image %}
+                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" style="width:64px; height:64px; border-radius: 8px; margin-right: 1rem;">
+                                    {% else %}
+                                        <div style="width:64px; height:64px; background-color: var(--border); border-radius: 8px; margin-right: 1rem;"></div>
+                                    {% endif %}
+                                    <div>
+                                        <strong>{{ item.product.name }}</strong>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">
+                                <div class="quantity-control">
+                                    <form action="{% url 'cart_subtract' item.id %}" method="post" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary decrement">-</button>
+                                    </form>
+                                    <span style="margin: 0 .5rem;">{{ item.quantity }}</span>
+                                    <form action="{% url 'cart_add' item.id %}" method="post" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary increment">+</button>
+                                    </form>
+                                </div>
+                            </td>
+                            <td style="text-align: right;">
+                                {{ item.product.price }} PLN
+                                <form action="{% url 'cart_remove' item.id %}" method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-ghost" title="Usuń produkt">🗑️</button>
+                                </form>
+                            </td>
+                            <td style="text-align: right;"><strong>{{ item.total_price }} PLN</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="cart-summary">
+                <h2>Łącznie: {{ cart.total_price }} PLN</h2>
+                <a href="#" class="btn btn-primary">Przejdź do płatności</a>
+            </div>
+
+        {% else %}
+            <div class="empty-cart">
+                <h2>Twój koszyk jest pusty.</h2>
+                <p class="muted">Dodaj coś, aby zobaczyć to tutaj!</p>
+                <a href="{% url 'browse_products' %}" class="btn btn-primary mt-sm">Przeglądaj Memy</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

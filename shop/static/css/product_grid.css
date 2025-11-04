@@ -1,26 +1,103 @@
-.product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5rem;
+/* Nagłówek przeglądania */
+.browse-header {
+    text-align: center;
+    margin-bottom: 1rem;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
+/* Kontener główny */
+.container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0; /* usuwamy marginesy */
+}
+
+/* Siatka produktów – karty stykają się */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0; /* brak odstępów między kartami */
+    justify-items: stretch;
+    align-items: stretch;
+}
+
+/* Karta produktu */
+.card {
+    background: var(--card-bg, transparent);
+    border-radius: 0; /* brak zaokrągleń – idealne przyleganie */
+    box-shadow: none; /* opcjonalnie wyłączone cienie, by nie tworzyły wizualnego odstępu */
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.2s ease;
+    margin: 0;
+    padding: 0;
+}
+
+.card:hover {
+    transform: scale(1.01);
+}
+
+/* Kontener obrazka w karcie */
+.card-image-container {
+    width: 100%; /* pełna szerokość karty */
+    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem;
+    box-sizing: border-box;
+}
+
+/* Obrazek w karcie */
 .card-image {
     width: 100%;
-    height: 200px;
-    object-fit: cover;
-    /* Używamy zmiennej --radius zdefiniowanej w theme.css */
+    height: auto;
+    max-height: 350px; /* ograniczenie, żeby nie rozwalało karty */
+    object-fit: contain; /* zapewnia pełne pokazanie obrazka */
+    display: block;
     border-top-left-radius: var(--radius);
     border-top-right-radius: var(--radius);
 }
 
+/* Zawartość karty */
+.card-content {
+    padding: 0.5rem;
+    text-align: center;
+    width: 100%;
+}
+
+.card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0.25rem 0;
+}
+
+.muted {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin: 0.15rem 0;
+}
+
+/* Stopka karty */
 .card-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
 }
 
 .price {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: bold;
+}
+
+.btn {
+    border-radius: var(--radius);
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
 }

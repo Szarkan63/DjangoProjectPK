@@ -1,31 +1,45 @@
+
 {% extends "base.html" %}
 {% load static %}
 
 {% block title %}Przeglądaj Memy{% endblock %}
 
 {% block extra_css %}
-    {# Dołączamy nasz nowy arkusz stylów #}
     <link rel="stylesheet" href="{% static 'css/product_grid.css' %}">
 {% endblock %}
 
 {% block content %}
-<section class="content-wrap">
-    <h1>Przeglądaj Memy</h1>
-    <p class="mb-lg">Oto najnowsze memy wystawione na sprzedaż. Wybierz coś dla siebie!</p>
+<div class="container">
+    <div class="browse-header">
+        <h1>Przeglądaj Memy</h1>
+        <p class="mb-lg">Oto najnowsze memy wystawione na sprzedaż. Wybierz coś dla siebie!</p>
+    </div>
 
     {% if products %}
         <div class="product-grid">
             {% for product in products %}
                 <div class="card">
                     {% if product.image %}
-                        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-image">
-                    {% endif %}
+    <div class="card-image-container">
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-image">
+    </div>
+{% endif %}
+
                     <div class="card-content">
-                        <h3 class="card-title">{{ product.name }}</h3>
+                        <h3 class="card-title">
+    <a href="{% url 'product_detail' product.id %}" class="product-link">
+        {{ product.name }}
+    </a>
+</h3>
+                        <p class="muted">Kategoria: {{ product.category }}</p>
                         <p class="muted">Sprzedający: {{ product.author.username }}</p>
+                        <p class="muted">Opis: {{ product.description }}</p>
                         <div class="card-footer">
                             <span class="price">{{ product.price }} PLN</span>
-                            <button class="btn btn-primary">Kup</button>
+                            <form action="{% url 'add_to_cart' product.id %}" method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Dodaj do koszyka</button>
+</form>
                         </div>
                     </div>
                 </div>
@@ -34,7 +48,6 @@
     {% else %}
         <p>Wygląda na to, że nie ma jeszcze żadnych memów na sprzedaż. Bądź pierwszy i <a href="{% url 'sell' %}">wystaw coś na sprzedaż</a>!</p>
     {% endif %}
-</section>
+</div>
 
-{# Usunęliśmy stąd cały blok <style> #}
 {% endblock %}

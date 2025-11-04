@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Edytuj Produkt{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card" style="padding:1rem;">
+        <h2>Edytuj Produkt: {{ product.name }}</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+            <a href="{% url 'user_panel' %}" class="btn btn-ghost">Anuluj</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

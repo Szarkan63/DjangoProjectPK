@@ -6,7 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Aplikacja{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/theme.css' %}">
-
+<style>
+.cart-badge {
+    position: absolute !important;
+    top: -5px !important;
+    right: -20px !important; /* przesunięcie bardziej w prawo */
+    background-color: #ff3d3d !important;
+    color: #fff !important;
+    border-radius: 50% !important;
+    padding: 0.15rem 0.4rem !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    min-width: 1rem !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+}
+</style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -16,17 +32,27 @@
         {% if user.is_authenticated %}
             <a href="{% url 'sell' %}" class="nav-link">Sprzedaj Mema</a>
             <a href="{% url 'browse_products' %}" class="nav-link">Przeglądaj Memy</a>
+            <a href="{% url 'cart' %}" class="nav-link cart-link">
+    Twój Koszyk
+    {% if cart_item_count != "0" %}
+        <span class="cart-badge">{{ cart_item_count }}</span>
+    {% endif %}
+</a>
         {% endif %}
     </div>
     <div class="nav">
         {% if user.is_authenticated %}
-            {% if user.is_staff %}
-                <a href="{% url 'admin_panel' %}" class="nav-link">Panel Administratora</a>
-            {% endif %}
-            <form action="{% url 'logout' %}" method="post" style="margin-bottom: 0;">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-ghost">Wyloguj</button>
-            </form>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                {% if user.is_staff %}
+    <a href="{% url 'admin_panel' %}" class="nav-link">Panel Administratora</a>
+{% else %}
+    <a href="{% url 'user_panel' %}" class="nav-link">Panel Użytkownika</a>
+{% endif %}
+                <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-ghost">Wyloguj</button>
+                </form>
+            </div>
         {% else %}
             <a href="{% url 'login' %}" class="nav-link">Zaloguj</a>
             <a href="{% url 'signup' %}" class="btn btn-primary">Zarejestruj</a>

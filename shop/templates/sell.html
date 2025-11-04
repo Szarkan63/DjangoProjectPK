@@ -3,30 +3,54 @@
 {% block title %}Sprzedaj Mema{% endblock %}
 
 {% block content %}
-<div class="auth-wrap">
+<section class="auth-wrap">
     <div class="card auth-card">
-        <h1 class="card-title">Sprzedaj Mema</h1>
-        <p class="muted">Uzupełnij poniższe pola, aby wystawić mema na sprzedaż w naszym sklepie.</p>
-        <form method="post" enctype="multipart/form-data" class="mt-sm">
+        <h1 class="card-title">Wystaw Mema na Sprzedaż</h1>
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
+
             <div class="form-field">
-                <label for="id_name">Tytuł</label>
-                <input type="text" name="name" id="id_name" class="input" required>
+                <label for="{{ form.name.id_for_label }}">Nazwa Mema</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <div class="field-error">{{ form.name.errors|first }}</div>
+                {% endif %}
             </div>
+
             <div class="form-field">
-                <label for="id_description">Opis</label>
-                <textarea name="description" id="id_description" class="input" rows="4"></textarea>
+                <label for="{{ form.category.id_for_label }}">Kategoria</label>
+                {{ form.category }}
+                {% if form.category.errors %}
+                    <div class="field-error">{{ form.category.errors|first }}</div>
+                {% endif %}
             </div>
+
             <div class="form-field">
-                <label for="id_price">Cena (PLN)</label>
-                <input type="number" name="price" step="0.01" id="id_price" class="input" required>
+                <label for="{{ form.description.id_for_label }}">Opis</label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <div class="field-error">{{ form.description.errors|first }}</div>
+                {% endif %}
             </div>
+
             <div class="form-field">
-                <label for="id_image">Plik z memem</label>
-                <input type="file" name="image" accept="image/*" id="id_image" class="input" required>
+                <label for="{{ form.price.id_for_label }}">Cena (PLN)</label>
+                {{ form.price }}
+                {% if form.price.errors %}
+                    <div class="field-error">{{ form.price.errors|first }}</div>
+                {% endif %}
             </div>
-            <button type="submit" class="btn btn-primary mt-sm" style="width: 100%;">Wystaw na sprzedaż</button>
+
+            <div class="form-field">
+                <label for="{{ form.image.id_for_label }}">Obrazek</label>
+                {{ form.image }}
+                {% if form.image.errors %}
+                    <div class="field-error">{{ form.image.errors|first }}</div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Wystaw</button>
         </form>
     </div>
-</div>
+</section>
 {% endblock %}

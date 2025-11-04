@@ -16,10 +16,25 @@ class SignUpForm(UserCreationForm):
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'description', 'price', 'image']
+        fields = ['name', 'category', 'description', 'price', 'image']
         labels = {
             'name': 'Tytuł',
+            'category': 'Kategoria',
             'description': 'Opis',
-            'price': 'Cena',
-            'image': 'Obraz',
+            'price': 'Cena (PLN)',
+            'image': 'Plik z memem',
         }
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'input'}),
+            'category': forms.Select(attrs={'class': 'input'}),
+            'description': forms.Textarea(attrs={'class': 'input', 'rows': 4}),
+            'price': forms.NumberInput(attrs={'class': 'input', 'step': '0.01'}),
+            'image': forms.FileInput(attrs={'class': 'input', 'accept': 'image/*'}),
+        }
+
+class RejectProductForm(forms.Form):
+    reason = forms.CharField(
+        label="Powód odrzucenia",
+        widget=forms.Textarea(attrs={"rows": 3, "placeholder": "Podaj powód odrzucenia ogłoszenia"}),
+        required=True
+    )

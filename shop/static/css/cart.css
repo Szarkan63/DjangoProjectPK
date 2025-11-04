@@ -1,0 +1,168 @@
+/* ================================
+   KONTROLKI ILOŚCI W KOSZYKU
+   ================================ */
+.quantity-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.quantity-control span {
+    min-width: 20px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* Przyciski + i - */
+.quantity-control button.quantity-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    font-weight: 700;
+    cursor: pointer;
+    transition: filter 0.15s, transform 0.05s, background 0.2s, color 0.2s;
+}
+
+/* Gradient zgodny z motywem (jak btn-primary) */
+.quantity-control button.quantity-btn.increment,
+.quantity-control button.quantity-btn.decrement {
+    background: linear-gradient(180deg,
+        color-mix(in oklab, var(--primary) 90%, #fff 10%),
+        color-mix(in oklab, var(--primary) 90%, #000 10%)
+    );
+    color: var(--text-inv);
+    border-color: var(--border);
+}
+
+.quantity-control button.quantity-btn.increment:hover,
+.quantity-control button.quantity-btn.decrement:hover {
+    filter: brightness(1.05);
+}
+
+.quantity-control button.quantity-btn:active {
+    transform: translateY(1px);
+}
+
+/* Alternatywna wersja przycisku */
+.quantity-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    cursor: pointer;
+    border-radius: 12px;
+    padding: .4rem .65rem;
+    font-weight: 700;
+    transition: filter .15s, transform .05s, background .2s, color .2s;
+
+    background: linear-gradient(180deg,
+        color-mix(in oklab, var(--primary) 90%, #fff 10%),
+        color-mix(in oklab, var(--primary) 90%, #000 10%)
+    );
+    color: var(--text-inv);
+}
+
+.quantity-btn:hover {
+    filter: brightness(1.05);
+}
+
+.quantity-btn:active {
+    transform: translateY(1px);
+}
+
+/* ================================
+   GŁÓWNY UKŁAD STRONY KOSZYKA
+   ================================ */
+.cart-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 1rem;
+    min-height: calc(100vh - 6rem);
+}
+
+/* Karta koszyka */
+.cart-card {
+    width: 100%;
+    max-width: 900px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 8px 24px color-mix(in oklab, #000 10%, var(--primary) 10%);
+    text-align: center;
+}
+
+/* Tabela koszyka */
+.cart-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+}
+
+.cart-table th,
+.cart-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+.cart-table th {
+    text-align: center;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.cart-table td {
+    text-align: center;
+}
+
+/* Kolumna z produktem */
+.product-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* ================================
+   PODSUMOWANIE I PUSTY KOSZYK
+   ================================ */
+.cart-summary {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.cart-summary .btn {
+    margin-top: 1rem;
+}
+
+/* Pusty koszyk */
+.empty-cart {
+    text-align: center;
+    padding: 4rem 1rem;
+}
+
+/* ================================
+   RESPONSYWNOŚĆ
+   ================================ */
+@media (max-width: 768px) {
+    .product-cell {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .cart-card {
+        padding: 1.5rem 1rem;
+    }
+
+    .cart-table th, .cart-table td {
+        padding: 0.75rem;
+    }
+}

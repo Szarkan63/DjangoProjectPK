@@ -1,41 +1,64 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Panel Administratora{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
+{% endblock %}
+
 {% block content %}
-    <section class="content-wrap">
-        <h1>Panel Administratora</h1>
-        <h2 class="mb-lg">Produkty do zatwierdzenia</h2>
+<section class="admin-panel-wrap">
+    <div class="admin-panel-container">
+        <div class="admin-header">
+            <h1>Panel Administratora</h1>
+            <p class="muted">Zarządzaj produktami i zatwierdzaj nowe ogłoszenia</p>
+        </div>
 
         {% if products_to_approve %}
             <div class="product-approval-list">
                 {% for product in products_to_approve %}
-                    <div class="card mb-md">
-                        <div class="card-content">
+                    <div class="card product-approval-card">
+                        <div class="card-header">
                             <h3 class="card-title">{{ product.name }}</h3>
-                            <p><strong>Autor:</strong> {{ product.author.username }}</p>
+                            <span class="muted">Autor: <strong>{{ product.author.username }}</strong></span>
+                        </div>
+
+                        <div class="card-body">
+                            <p><strong>Kategoria:</strong> {{ product.category.name }}</p>
                             <p><strong>Cena:</strong> {{ product.price }} PLN</p>
                             <p><strong>Opis:</strong></p>
-                            <div>{{ product.description|safe }}</div>
-
-                            {% if product.image %}
-                                <div class="mt-sm">
-                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" style="max-width: 200px; height: auto;">
-                                </div>
-                            {% endif %}
-
-                            <div class="mt-md">
-                                <form method="post" action="{% url 'approve_product' product.id %}" style="display: inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-primary">Zatwierdź</button>
-                                </form>
+                            <div class="product-description-box">
+                                {{ product.description|safe }}
                             </div>
+                        </div>
+
+                        {% if product.image %}
+                            <div class="product-image-wrap">
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+                            </div>
+                        {% endif %}
+
+                        <div class="card-footer" style="display:flex; gap:.5rem;">
+                            <!-- Zatwierdź -->
+                            <form method="post" action="{% url 'approve_product' product.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary">Zatwierdź</button>
+                            </form>
+                            <!-- Odrzuć -->
+                            <form method="get" action="{% url 'reject_product' product.id %}" style="display:inline;">
+                                <button type="submit" class="btn btn-ghost">Odrzuć</button>
+                            </form>
                         </div>
                     </div>
                 {% endfor %}
             </div>
         {% else %}
-            <p>Wszystkie produkty są zatwierdzone. Brak ogłoszeń do akceptacji.</p>
+            <div class="card no-products-card">
+                <h3>Wszystkie produkty są zatwierdzone</h3>
+                <p class="muted">Brak ogłoszeń do akceptacji.</p>
+            </div>
         {% endif %}
-    </section>
+    </div>
+</section>
 {% endblock %}

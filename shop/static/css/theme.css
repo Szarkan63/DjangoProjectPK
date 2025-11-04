@@ -170,3 +170,24 @@ input:focus, select:focus, textarea:focus {
 input[type="text"], input[type="email"], input[type="password"] {
     font: inherit;
 }
+
+.cart-link {
+    position: relative; /* potrzebne, żeby span był względem linku */
+}
+
+.cart-badge {
+    position: absolute !important;
+    top: -8px !important;
+    right: -20px !important; /* przesunięcie bardziej w prawo */
+    background-color: #ff3d3d !important;
+    color: #fff !important;
+    border-radius: 50% !important;
+    padding: 0.2rem 0.55rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    min-width: 1.2rem !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+}
+
