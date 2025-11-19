@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from shop.models import Product
+from shop.models import Product, Order
 
 
 class SignUpForm(UserCreationForm):
@@ -38,3 +38,23 @@ class RejectProductForm(forms.Form):
         widget=forms.Textarea(attrs={"rows": 3, "placeholder": "Podaj powód odrzucenia ogłoszenia"}),
         required=True
     )
+
+class OrderForm(forms.ModelForm):
+    class Meta:
+        model = Order
+        fields = ['first_name', 'last_name', 'city', 'street_address', 'payment_method']
+        labels = {
+            'first_name': 'Imię',
+            'last_name': 'Nazwisko',
+            'city': 'Miasto',
+            'street_address': 'Ulica i numer',
+            'payment_method': 'Sposób płatności',
+        }
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'city': forms.TextInput(attrs={'class': 'form-control'}),
+            'street_address': forms.TextInput(attrs={'class': 'form-control'}),
+            'payment_method': forms.Select(attrs={'class': 'form-control'}),
+        }
+

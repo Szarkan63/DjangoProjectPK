@@ -1,0 +1,136 @@
+/* --- Układ zakładek --- */
+.tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+}
+.tab-link {
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease-in-out;
+}
+.tab-link.active, .tab-link:hover {
+    color: var(--text);
+    border-bottom-color: var(--primary);
+}
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
+
+/* --- Sekcja Zamówień --- */
+.order-card {
+    margin-bottom: 1.5rem;
+    padding: 0; /* Reset paddingu z .card */
+}
+.order-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+.order-header-info {
+    display: flex;
+    flex-direction: column;
+}
+.order-id {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+.order-date {
+    font-size: 0.85rem;
+}
+.status-label {
+    font-weight: 600;
+    color: var(--muted);
+}
+.status-value {
+    font-weight: 600;
+    color: var(--accent);
+    margin-left: .5rem;
+}
+
+.order-body {
+    padding: 1.5rem;
+}
+.order-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.shipping-details h4, .payment-details h4, .order-items h4 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.total-price {
+    color: var(--text);
+    font-size: 1.1em;
+}
+
+.order-items .table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.order-items .table td {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+}
+.order-items .table tr:last-child td {
+    border-bottom: none;
+}
+.product-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.product-item-image {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+.product-item-price {
+    text-align: right;
+    font-weight: 600;
+}
+
+/* --- Sekcja Powiadomień --- */
+.notifications-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.notification-item {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* --- Placeholder (puste stany) --- */
+.placeholder-card {
+    padding: 2rem;
+    text-align: center;
+    border: 2px dashed var(--border);
+    background-color: var(--elev-1);
+    border-radius: var(--radius);
+}

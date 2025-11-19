@@ -3,97 +3,50 @@
 
 {% block title %}Panel Użytkownika{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/user_panel.css' %}">
+{% endblock %}
+
+
 {% block content %}
-
 <div class="container">
-    <h1>Panel Użytkownika</h1>
-    <p class="muted">Witaj, {{ user.username }}! Tutaj możesz zarządzać swoimi ogłoszeniami, zamówieniami i powiadomieniami.</p>
+    <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Panel Użytkownika</h1>
+    <p class="muted">Witaj, {{ user.username }}! Zarządzaj swoimi ogłoszeniami, zamówieniami i powiadomieniami.</p>
 
-    <hr class="mt-sm">
+    <!-- Nawigacja w zakładkach -->
+    <div class="tabs" style="margin-top: 2rem;">
+        <button class="tab-link active" onclick="openTab(event, 'announcements')">Twoje Ogłoszenia</button>
+        <button class="tab-link" onclick="openTab(event, 'orders')">Twoje Zamówienia</button>
+        <button class="tab-link" onclick="openTab(event, 'notifications')">Powiadomienia</button>
+    </div>
 
-    <!-- Twoje Ogłoszenia -->
-    <section>
-        <h2>Twoje Ogłoszenia</h2>
-        {% if user_products %}
-            <div class="product-grid">
-                {% for product in user_products %}
-                    <div class="card" style="padding: 1rem;">
-                        {% if product.image %}
-                            <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width:100%; border-radius: 12px;">
-                        {% endif %}
-                        <h3 class="card-title">{{ product.name }}</h3>
-                        <p class="muted">Kategoria: {{ product.category }}</p>
-                        <p>{{ product.description|truncatewords:20 }}</p>
-                        <p><strong>Cena:</strong> {{ product.price }} PLN</p>
-                        <p><strong>Status:</strong>
-                            {% if product.is_approved %}
-                                <span style="color: var(--success); font-weight: 600;">Zatwierdzony</span>
-                            {% else %}
-                                <span style="color: var(--accent); font-weight: 600;">Oczekuje na zatwierdzenie</span>
-                            {% endif %}
-                        </p>
-                        <div style="display:flex; gap:.5rem; margin-top:.5rem;">
-                            <a href="{% url 'edit_product' product.id %}" class="btn btn-primary" style="flex:1;">Edytuj</a>
-                            <a href="{% url 'delete_product' product.id %}" class="btn btn-ghost" style="flex:1;">Usuń</a>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p>Nie wystawiłeś jeszcze żadnych memów. <a href="{% url 'sell' %}" class="link">Dodaj nowy produkt</a>.</p>
-        {% endif %}
-    </section>
+    <!-- Kontenery zakładek -->
+    <div id="announcements" class="tab-content active">
+        {% include '_announcements.html' %}
+    </div>
 
-    <hr class="mt-sm">
+    <div id="orders" class="tab-content">
+        {% include '_orders.html' %}
+    </div>
 
-    <!-- Twoje Zamówienia -->
-    <section>
-        <h2>Twoje Zamówienia</h2>
-        {% if user_orders %}
-            <div class="card" style="padding: 1rem;">
-                <table style="width:100%; border-collapse:collapse;">
-                    <thead>
-                        <tr style="border-bottom:1px solid var(--border);">
-                            <th>ID</th>
-                            <th>Status</th>
-                            <th>Data</th>
-                            <th>Adres wysyłki</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for order in user_orders %}
-                            <tr style="border-bottom:1px solid var(--border);">
-                                <td>{{ order.id }}</td>
-                                <td>{{ order.get_status_display }}</td>
-                                <td>{{ order.created_at|date:"d.m.Y H:i" }}</td>
-                                <td>{{ order.shipping_address }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p>Nie złożyłeś jeszcze żadnych zamówień.</p>
-        {% endif %}
-    </section>
-
-    <hr class="mt-sm">
-
-    <!-- Powiadomienia -->
-    <section>
-        <h2>Powiadomienia</h2>
-        {% if user.notifications.all %}
-            <ul>
-                {% for notification in user.notifications.all %}
-                    <li style="margin-bottom:0.5rem;{% if not notification.is_read %} font-weight:600;{% endif %}">
-                        {{ notification.message }}
-                        <small class="muted">({{ notification.created_at|date:"d.m.Y H:i" }})</small>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>Brak powiadomień.</p>
-        {% endif %}
-    </section>
+    <div id="notifications" class="tab-content">
+        {% include '_notifications.html' %}
+    </div>
 </div>
+{% endblock %}
+
+{% block page_script %}
+<script>
+    function openTab(evt, tabName) {
+        // Ukryj wszystkie zakładki
+        document.querySelectorAll(".tab-content").forEach(tab => tab.classList.remove('active'));
+
+        // Deaktywuj wszystkie przyciski
+        document.querySelectorAll(".tab-link").forEach(link => link.classList.remove('active'));
+
+        // Pokaż wybraną zakładkę i aktywuj przycisk
+        document.getElementById(tabName).classList.add('active');
+        evt.currentTarget.classList.add("active");
+    }
+</script>
 {% endblock %}

@@ -1,0 +1,15 @@
+{% if user_notifications %}
+    <ul class="notifications-list">
+        {% for notification in user_notifications %}
+            <li class="card notification-item">
+                <p class="notification-message">{{ notification.message }}</p>
+                <span class="notification-date muted">{{ notification.created_at|date:"d.m.Y H:i" }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <div class="card placeholder-card">
+        <h3>Brak nowych powiadomień</h3>
+        <p class="muted">Wszystkie Twoje powiadomienia pojawią się w tym miejscu.</p>
+    </div>
+{% endif %}

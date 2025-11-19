@@ -1,0 +1,72 @@
+{% if user_orders %}
+    <div class="orders-list">
+        {% for order in user_orders %}
+            <div class="card order-card">
+                <div class="order-header">
+                    <div class="order-header-info">
+                        <span class="order-id">Zamówienie #{{ order.id }}</span>
+                        <span class="order-date muted">Data: {{ order.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                    <div>
+                        <span class="status-label">Status:</span>
+                        <span class="status-value">{{ order.get_status_display }}</span>
+                    </div>
+                </div>
+                <div class="order-body">
+                    <div class="order-details-grid">
+                        <div class="shipping-details">
+                            <h4>Dane do wysyłki</h4>
+                            <p>
+                                {{ order.first_name }} {{ order.last_name }}<br>
+                                {{ order.street_address }}<br>
+                                {{ order.city }}
+                            </p>
+                        </div>
+                        <div class="payment-details">
+                            <h4>Metoda płatności</h4>
+                            <p>{{ order.get_payment_method_display }}</p>
+                            <h4>Suma</h4>
+                            <p class="total-price">{{ order.total_price }} PLN</p>
+                        </div>
+                    </div>
+
+                    <div class="order-items">
+                        <h4>Zamówione produkty</h4>
+                        <table class="table">
+                            <tbody>
+                            {% for item in order.items.all %}
+                                <tr>
+                                    <td>
+                                        <div class="product-item">
+                                            {% if item.product.image %}
+                                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="product-item-image">
+                                            {% endif %}
+                                            <div>
+                                                <a href="{% url 'product_detail' item.product.id %}">{{ item.product.name }}</a>
+                                                <span class="muted"> (x{{ item.quantity }})</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="product-item-price">{{ item.price }} PLN</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                     {% if order.status == 'rejected' and order.rejection_reason %}
+                        <div class="rejection-reason" style="margin-top: 1.5rem;">
+                            <h4 style="color: var(--danger);">Powód odrzucenia</h4>
+                            <p>{{ order.rejection_reason }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card placeholder-card">
+        <h3>Nie masz jeszcze żadnych zamówień</h3>
+        <p class="muted">Wszystkie Twoje przyszłe zamówienia pojawią się w tym miejscu.</p>
+        <a href="{% url 'browse_products' %}" class="btn btn-primary" style="margin-top: 1rem;">Przeglądaj produkty</a>
+    </div>
+{% endif %}

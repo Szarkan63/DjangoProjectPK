@@ -1,8 +1,14 @@
+import os
+
+from PIL import Image
 from django.db import models
 
 # Create your models here.
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Sum, F
+
+from DjangoProjectPK import settings
 
 
 class Profile(models.Model):
@@ -54,6 +60,25 @@ class Product(models.Model):
     """
     Model produktu (lub posta).
     """
+    image = models.ImageField(upload_to='products/', verbose_name='Obraz', null=True, blank=True)
+
+    # Rozmiar docelowy obrazów (np. 600x600 px)
+    TARGET_WIDTH = 600
+    TARGET_HEIGHT = 600
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.image:
+            img_path = os.path.join(settings.MEDIA_ROOT, self.image.name)
+            img = Image.open(img_path)
+
+            # Konwersja do RGB (dla obrazów PNG z alfa)
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+
+            img = img.resize((self.TARGET_WIDTH, self.TARGET_HEIGHT), Image.LANCZOS)
+            img.save(img_path)
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='products', verbose_name='Kategoria')
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Autor')
     name = models.CharField(max_length=200, verbose_name='Nazwa')
@@ -86,24 +111,46 @@ class Comment(models.Model):
 
 
 class Order(models.Model):
-    """
-    Model zamówienia.
-    """
+    PAYMENT_METHODS = (
+        ('card', 'Karta płatnicza'),
+        ('blik', 'BLIK'),
+        ('przelew', 'Przelew bankowy'),
+    )
+
     ORDER_STATUS = (
+        ('pending_approval', 'Oczekuje na zatwierdzenie'),
         ('pending', 'Oczekujące'),
         ('processing', 'W trakcie realizacji'),
         ('shipped', 'Wysłane'),
         ('delivered', 'Dostarczone'),
-        ('cancelled', 'Anulowane'),
+        ('canceled', 'Anulowane'),
+        ('rejected', 'Odrzucone'),
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Użytkownik')
-    status = models.CharField(max_length=20, choices=ORDER_STATUS, default='pending', verbose_name='Status')
-    shipping_address = models.TextField(verbose_name='Adres wysyłki')
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=50,default='')
+    last_name = models.CharField(max_length=50,default='')
+    city = models.CharField(max_length=100,default='')
+    street_address = models.CharField(max_length=255,default='')
+    status = models.CharField(max_length=20, choices=ORDER_STATUS, default='pending_approval')
+    rejection_reason = models.TextField(blank=True, null=True)
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PAYMENT_METHODS,
+        default='card'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'Zamówienie nr {self.id} od {self.user.username}'
+        return f"Zamówienie nr {self.id} dla {self.user.username}"
+
+    @property
+    def total_price(self):
+        return self.items.aggregate(
+            total=Sum(F('quantity') * F('price'))
+        )['total'] or 0
+
 
 
 class OrderItem(models.Model):

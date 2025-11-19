@@ -15,48 +15,120 @@
             <p class="muted">Zarządzaj produktami i zatwierdzaj nowe ogłoszenia</p>
         </div>
 
-        {% if products_to_approve %}
-            <div class="product-approval-list">
-                {% for product in products_to_approve %}
-                    <div class="card product-approval-card">
-                        <div class="card-header">
-                            <h3 class="card-title">{{ product.name }}</h3>
-                            <span class="muted">Autor: <strong>{{ product.author.username }}</strong></span>
-                        </div>
+        <div class="admin-tabs">
+            <a href="?view=products" class="btn {% if view_type == 'products' %}btn-primary{% else %}btn-ghost{% endif %}">
+                Do zatwierdzenia ({{ products_to_approve_count }})
+            </a>
+            <a href="?view=comments" class="btn {% if view_type == 'comments' %}btn-primary{% else %}btn-ghost{% endif %}">
+                Komentarze ({{ comments_to_approve_count }})
+            </a>
+            <a href="?view=orders" class="btn {% if view_type == 'orders' %}btn-primary{% else %}btn-ghost{% endif %}">
+                Zamówienia ({{ orders_to_approve_count }})
+            </a>
+        </div>
 
-                        <div class="card-body">
-                            <p><strong>Kategoria:</strong> {{ product.category.name }}</p>
-                            <p><strong>Cena:</strong> {{ product.price }} PLN</p>
-                            <p><strong>Opis:</strong></p>
-                            <div class="product-description-box">
-                                {{ product.description|safe }}
+        {% if page_obj %}
+            {% if view_type == 'products' %}
+                <div class="product-approval-list">
+                    {% for product in page_obj %}
+                        <div class="card product-approval-card">
+                            <div class="card-header">
+                                <h3 class="card-title">{{ product.name }}</h3>
+                                <span class="muted">Autor: <strong>{{ product.author.username }}</strong></span>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Kategoria:</strong> {{ product.category.name }}</p>
+                                <p><strong>Cena:</strong> {{ product.price }} PLN</p>
+                                <p><strong>Opis:</strong></p>
+                                <div class="product-description-box">
+                                    {{ product.description|safe }}
+                                </div>
+                            </div>
+                            {% if product.image %}
+                                <div class="product-image-wrap">
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+                                </div>
+                            {% endif %}
+                            <div class="card-footer" style="display:flex; gap:.5rem;">
+                                <form method="post" action="{% url 'approve_product' product.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary">Zatwierdź</button>
+                                </form>
+                                <form method="get" action="{% url 'reject_product' product.id %}" style="display:inline;">
+                                    <button type="submit" class="btn btn-ghost">Odrzuć</button>
+                                </form>
                             </div>
                         </div>
-
-                        {% if product.image %}
-                            <div class="product-image-wrap">
-                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+                    {% endfor %}
+                </div>
+            {% elif view_type == 'comments' %}
+                <div class="comment-approval-list">
+                    {% for comment in page_obj %}
+                        <div class="card comment-approval-card">
+                            <div class="card-body">
+                                <p><strong>Autor:</strong> {{ comment.author.username }}</p>
+                                <p><strong>Produkt:</strong> <a href="{% url 'product_detail' comment.product.id %}">{{ comment.product.name }}</a></p>
+                                <p><strong>Data:</strong> {{ comment.created_at|date:"d.m.Y H:i" }}</p>
+                                <div class="comment-content-box">
+                                    {{ comment.content }}
+                                </div>
                             </div>
-                        {% endif %}
-
-                        <div class="card-footer" style="display:flex; gap:.5rem;">
-                            <!-- Zatwierdź -->
-                            <form method="post" action="{% url 'approve_product' product.id %}" style="display:inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-primary">Zatwierdź</button>
-                            </form>
-                            <!-- Odrzuć -->
-                            <form method="get" action="{% url 'reject_product' product.id %}" style="display:inline;">
-                                <button type="submit" class="btn btn-ghost">Odrzuć</button>
-                            </form>
+                            <div class="card-footer" style="display:flex; gap:.5rem;">
+                                <form method="post" action="{% url 'approve_comment' comment.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary">Zatwierdź</button>
+                                </form>
+                                <form method="post" action="{% url 'reject_comment' comment.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-ghost">Odrzuć</button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
-                {% endfor %}
-            </div>
+                    {% endfor %}
+                </div>
+            {% elif view_type == 'orders' %}
+                <div class="order-approval-list">
+                    {% for order in page_obj %}
+                        <div class="card order-approval-card">
+                            <div class="card-header">
+                                <h3 class="card-title">Zamówienie #{{ order.id }}</h3>
+                                <span class="muted">Użytkownik: <strong>{{ order.user.username }}</strong></span>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Imię i nazwisko:</strong> {{ order.first_name }} {{ order.last_name }}</p>
+                                <p><strong>Adres:</strong> {{ order.street_address }}, {{ order.city }}</p>
+                                <p><strong>Całkowita kwota:</strong> {{ order.total_price }} PLN</p>
+                                <p><strong>Produkty:</strong></p>
+                                <div class="order-products">
+                                    {% for item in order.items.all %}
+                                        <div class="order-product-item">
+                                            {% if item.product.image %}
+                                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="order-product-thumbnail">
+                                            {% endif %}
+                                            <span>{{ item.quantity }} x {{ item.product.name }}</span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="card-footer" style="display:flex; gap:.5rem;">
+                                <form method="post" action="{% url 'approve_order' order.id %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary">Zatwierdź</button>
+                                </form>
+                                <form method="get" action="{% url 'reject_order' order.id %}" style="display:inline;">
+                                    <button type="submit" class="btn btn-ghost">Odrzuć</button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% include '_pagination.html' %}
+
         {% else %}
-            <div class="card no-products-card">
-                <h3>Wszystkie produkty są zatwierdzone</h3>
-                <p class="muted">Brak ogłoszeń do akceptacji.</p>
+             <div class="card no-products-card">
+                <h3>Brak elementów do wyświetlenia.</h3>
             </div>
         {% endif %}
     </div>

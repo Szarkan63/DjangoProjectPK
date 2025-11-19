@@ -1,0 +1,26 @@
+{% for order in page_obj %}
+<div class="card product-approval-card">
+    <div class="card-header">
+        <h3 class="card-title">Zamówienie #{{ order.id }}</h3>
+        <span class="muted">Użytkownik: <strong>{{ order.user.username }}</strong></span>
+    </div>
+    <div class="card-body">
+        <p><strong>Status:</strong> {{ order.get_status_display }}</p>
+        <p><strong>Suma:</strong> {{ order.total_price }} PLN</p>
+        <p><strong>Metoda płatności:</strong> {{ order.get_payment_method_display }}</p>
+        <h5>Produkty:</h5>
+        <ul>
+            {% for item in order.items.all %}
+                <li>{{ item.product.name }} (x{{ item.quantity }}) - {{ item.price }} PLN</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="card-footer">
+        <form action="{% url 'approve_order' order.id %}" method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">Zatwierdź</button>
+        </form>
+        <a href="{% url 'reject_order' order.id %}" class="btn btn-danger">Odrzuć</a>
+    </div>
+</div>
+{% endfor %}

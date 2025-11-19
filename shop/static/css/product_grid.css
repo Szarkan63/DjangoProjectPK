@@ -45,24 +45,24 @@
 /* Kontener obrazka w karcie */
 .card-image-container {
     width: 100%; /* pełna szerokość karty */
-    height: auto;
+    height: 280px; /* Ustawienie stałej wysokości dla kontenera */
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 0.5rem;
     box-sizing: border-box;
+    overflow: hidden; /* Ukryj nadmiarową część obrazka */
 }
 
 /* Obrazek w karcie */
 .card-image {
     width: 100%;
-    height: auto;
-    max-height: 350px; /* ograniczenie, żeby nie rozwalało karty */
-    object-fit: contain; /* zapewnia pełne pokazanie obrazka */
+    height: 100%; /* Wypełnienie kontenera */
+    object-fit: cover; /* Kadrowanie obrazka, aby wypełnił przestrzeń bez zniekształceń */
     display: block;
     border-top-left-radius: var(--radius);
     border-top-right-radius: var(--radius);
 }
+
 
 /* Zawartość karty */
 .card-content {

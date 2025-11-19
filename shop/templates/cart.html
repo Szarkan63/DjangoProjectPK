@@ -67,8 +67,9 @@
 
             <div class="cart-summary">
                 <h2>Łącznie: {{ cart.total_price }} PLN</h2>
-                <a href="#" class="btn btn-primary">Przejdź do płatności</a>
+                <a href="{% url 'create_order' %}" class="btn btn-primary">Przejdź do płatności</a>
             </div>
+
 
         {% else %}
             <div class="empty-cart">

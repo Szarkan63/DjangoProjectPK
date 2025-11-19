@@ -29,5 +29,12 @@ urlpatterns = [
     path('cart/remove/<int:item_id>/', views.remove_from_cart, name='cart_remove'),
     path('reject/<int:product_id>/', views.reject_product, name='reject_product'),
     path('product/<int:product_id>/', views.product_detail, name='product_detail'),
+    path('comment/approve/<int:comment_id>/', views.approve_comment, name='approve_comment'),
+    path('comment/reject/<int:comment_id>/', views.reject_comment, name='reject_comment'),
+    path('order/create/', views.create_order, name='create_order'),
+
+    path('order/success/', views.order_success, name='order_success'),
+    path('approve_order/<int:order_id>/', views.approve_order, name='approve_order'),
+    path('reject_order/<int:order_id>/', views.reject_order, name='reject_order'),
 ]
 

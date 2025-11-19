@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Zamówienie złożone - MemShop{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-lg">
+    <div class="card">
+        <div class="card-body">
+            <h1 class="card-title">Dziękujemy za złożenie zamówienia!</h1>
+            <p class="lead">Możesz sprawdzić status swojego zamówienia w panelu użytkownika.</p>
+            <a href="{% url 'browse_products' %}" class="btn btn-primary mt-md">Powrót do przeglądania memów</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

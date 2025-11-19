@@ -1,42 +1,72 @@
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
-from .forms import SignUpForm, ProductForm
+from django.urls import reverse
+
+from .forms import SignUpForm, ProductForm, OrderForm
 from django.http import HttpResponse
 
-from .models import Product, Cart, CartItem, Order, Comment
+from .models import Product, Cart, CartItem, Order, Comment, OrderItem
 
 
-@staff_member_required
+@staff_member_required()
 def admin_panel(request):
-    """
-    Wyświetla panel z produktami do zatwierdzenia.
-    """
-    products_to_approve = Product.objects.select_related('category', 'author').filter(is_approved=False).order_by('-created_at')
+    view_type = request.GET.get('view', 'products')
+
+    products_to_approve_list = Product.objects.filter(is_approved=False).order_by('-created_at')
+    comments_to_approve_list = Comment.objects.filter(is_approved=False).order_by('-created_at')
+    orders_to_approve_list = Order.objects.filter(status='pending_approval').order_by('-created_at')
+
+    products_count = products_to_approve_list.count()
+    comments_count = comments_to_approve_list.count()
+    orders_count = orders_to_approve_list.count()
+
+    page_obj = None
+    items_per_page = 4
+
+    if view_type == 'products':
+        paginator = Paginator(products_to_approve_list, items_per_page)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+    elif view_type == 'comments':
+        paginator = Paginator(comments_to_approve_list, items_per_page)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+    elif view_type == 'orders':
+        paginator = Paginator(orders_to_approve_list, items_per_page)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
     context = {
-        'products_to_approve': products_to_approve
+        'view_type': view_type,
+        'page_obj': page_obj,
+        'products_to_approve_count': products_count,
+        'comments_to_approve_count': comments_count,
+        'orders_to_approve_count': orders_count,
     }
-    # Zmieniamy ścieżkę, aby pasowała do lokalizacji pliku: shop/templates/admin_panel.html
     return render(request, 'admin_panel.html', context)
+
 
 
 @staff_member_required
 def approve_product(request, product_id):
-    """
-    Zatwierdza produkt. Oczekuje żądania POST.
-    """
-    if request.method == 'POST':
-        product = get_object_or_404(Product, id=product_id)
-        product.is_approved = True
-        product.save()
+    if not request.user.is_staff:
+        return redirect('home')
+    product = get_object_or_404(Product, id=product_id)
+    product.is_approved = True
+    product.save()
     return redirect('admin_panel')
+
 
 
 @login_required
 def home(request):
-    return render(request, 'home.html')
+    products = Product.objects.filter(is_approved=True)[:10]  # Pobieramy 10 zatwierdzonych produktów
+    return render(request, 'home.html', {'products': products})
+
 
 
 @login_required
@@ -114,19 +144,33 @@ def add_to_cart(request, product_id):
         messages.success(request, f'Produkt "{product.name}" został dodany do koszyka.')
     return redirect('browse_products')
 
+
 @login_required
 def user_panel(request):
-    """
-    Panel użytkownika - pokazuje jego produkty i zamówienia.
-    """
     user_products = Product.objects.filter(author=request.user).order_by('-created_at')
-    user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
+
+    # Poprawione prefetch_related – teraz zgodne z related_name='items'
+    user_orders = (
+        Order.objects
+        .filter(user=request.user)
+        .prefetch_related('items__product')
+        .order_by('-created_at')
+    )
+
+    # Pobieranie powiadomień użytkownika
+    user_notifications = request.user.notifications.order_by('-created_at')
 
     context = {
         'user_products': user_products,
-        'user_orders': user_orders
+        'user_orders': user_orders,
+        'user_notifications': user_notifications,
     }
+
+    # Oznaczanie powiadomień jako przeczytane po ich pobraniu
+    request.user.notifications.update(is_read=True)
+
     return render(request, 'user_panel.html', context)
+
 
 
 @login_required
@@ -227,28 +271,121 @@ def reject_product(request, product_id):
 
 @login_required
 def product_detail(request, product_id):
-    """
-    Strona szczegółów pojedynczego produktu z możliwością dodawania komentarzy.
-    """
-    product = get_object_or_404(Product, id=product_id, is_approved=True)
+    product = get_object_or_404(Product, id=product_id)
     comments = product.comments.filter(is_approved=True).order_by('-created_at')
 
     if request.method == 'POST':
-        content = request.POST.get('content', '').strip()
+        content = request.POST.get('content')
         if content:
             Comment.objects.create(
                 product=product,
                 author=request.user,
-                content=content,
-                is_approved=True  # Można zmienić na False jeśli chcesz moderację
+                content=content
             )
-            messages.success(request, "Twój komentarz został dodany.")
+            messages.success(request, 'Twój komentarz został dodany i czeka na zatwierdzenie.')
             return redirect('product_detail', product_id=product.id)
-        else:
-            messages.error(request, "Komentarz nie może być pusty.")
 
     context = {
         'product': product,
-        'comments': comments,
+        'comments': comments
     }
     return render(request, 'product_detail.html', context)
+
+@login_required
+def approve_comment(request, comment_id):
+    if not request.user.is_staff:
+        return redirect('home')
+    comment = get_object_or_404(Comment, id=comment_id)
+    comment.is_approved = True
+    comment.save()
+    messages.success(request, f"Komentarz do '{comment.product.name}' został zatwierdzony.")
+    return redirect(f"{reverse('admin_panel')}?view=comments")
+
+@login_required
+def reject_comment(request, comment_id):
+    if not request.user.is_staff:
+        return redirect('home')
+    comment = get_object_or_404(Comment, id=comment_id)
+    comment.delete()
+    messages.success(request, "Komentarz został usunięty.")
+    return redirect(f"{reverse('admin_panel')}?view=comments")
+
+
+@login_required
+def create_order(request):
+    cart = Cart.objects.get(user=request.user)
+    if not cart.items.exists():
+        messages.info(request, "Twój koszyk jest pusty.")
+        return redirect('cart_view')
+
+    if request.method == 'POST':
+        form = OrderForm(request.POST)
+        if form.is_valid():
+            order = form.save(commit=False)
+            order.user = request.user
+            order.status = 'pending_approval'
+            order.save()
+
+            for cart_item in cart.items.all():
+                OrderItem.objects.create(
+                    order=order,
+                    product=cart_item.product,
+                    quantity=cart_item.quantity,
+                    price=cart_item.product.price
+                )
+
+            cart.items.all().delete()
+            return redirect('order_success')
+    else:
+        form = OrderForm()
+
+    context = {
+        'form': form,
+        'cart': cart,
+    }
+    return render(request, 'create_order.html', context)
+
+
+
+@login_required
+def order_success(request):
+    return render(request, 'order_success.html')
+
+
+@staff_member_required
+def approve_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    order.status = 'pending'
+    order.save()
+    Notification.objects.create(
+        user=order.user,
+        message=f"Twoje zamówienie #{order.id} zostało zatwierdzone i jest w trakcie realizacji."
+    )
+    messages.success(request, f"Zamówienie #{order.id} zostało zatwierdzone.")
+    return redirect('admin_panel')
+
+@staff_member_required
+def reject_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    if request.method == "POST":
+        reason = request.POST.get("reason", "").strip()
+        if not reason:
+            messages.error(request, "Musisz podać powód odrzucenia.")
+            return render(request, 'reject_order.html', {'order': order})
+
+        order.status = 'rejected'
+        order.rejection_reason = reason
+        order.save()
+
+        Notification.objects.create(
+            user=order.user,
+            message=f"Twoje zamówienie #{order.id} zostało odrzucone. Powód: {reason}"
+        )
+
+        messages.success(request, f"Zamówienie #{order.id} zostało odrzucone, a użytkownik powiadomiony.")
+        return redirect('admin_panel')
+
+    return render(request, 'reject_order.html', {'order': order})
+
+
