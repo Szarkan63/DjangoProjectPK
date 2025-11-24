@@ -12,10 +12,10 @@
     <div class="admin-panel-container">
         <div class="admin-header">
             <h1>Panel Administratora</h1>
-            <p class="muted">Zarządzaj produktami i zatwierdzaj nowe ogłoszenia</p>
+            <p class="muted">Zarządzaj produktami, komentarzami, zamówieniami i wszystkimi ogłoszeniami.</p>
         </div>
 
-        <div class="admin-tabs">
+        <div class="admin-tabs" style="margin-bottom: 2rem; display: flex; gap: .5rem; flex-wrap: wrap;">
             <a href="?view=products" class="btn {% if view_type == 'products' %}btn-primary{% else %}btn-ghost{% endif %}">
                 Do zatwierdzenia ({{ products_to_approve_count }})
             </a>
@@ -25,11 +25,14 @@
             <a href="?view=orders" class="btn {% if view_type == 'orders' %}btn-primary{% else %}btn-ghost{% endif %}">
                 Zamówienia ({{ orders_to_approve_count }})
             </a>
+            <a href="?view=all_products" class="btn {% if view_type == 'all_products' %}btn-primary{% else %}btn-ghost{% endif %}">
+                Wszystkie Produkty ({{ all_products_count }})
+            </a>
         </div>
 
-        {% if page_obj %}
+        {% if page_obj.object_list %}
             {% if view_type == 'products' %}
-                <div class="product-approval-list">
+                <div class="product-approval-list" style="display: flex; flex-direction: column; gap: 2rem;">
                     {% for product in page_obj %}
                         <div class="card product-approval-card">
                             <div class="card-header">
@@ -40,7 +43,7 @@
                                 <p><strong>Kategoria:</strong> {{ product.category.name }}</p>
                                 <p><strong>Cena:</strong> {{ product.price }} PLN</p>
                                 <p><strong>Opis:</strong></p>
-                                <div class="product-description-box">
+                                <div class="product-description-box" style="padding: 1rem; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);">
                                     {{ product.description|safe }}
                                 </div>
                             </div>
@@ -49,31 +52,29 @@
                                     <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
                                 </div>
                             {% endif %}
-                            <div class="card-footer" style="display:flex; gap:.5rem;">
+                            <div class="card-footer">
                                 <form method="post" action="{% url 'approve_product' product.id %}" style="display:inline;">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-primary">Zatwierdź</button>
                                 </form>
-                                <form method="get" action="{% url 'reject_product' product.id %}" style="display:inline;">
-                                    <button type="submit" class="btn btn-ghost">Odrzuć</button>
-                                </form>
+                                <a href="{% url 'reject_product' product.id %}" class="btn btn-ghost">Odrzuć</a>
                             </div>
                         </div>
                     {% endfor %}
                 </div>
             {% elif view_type == 'comments' %}
-                <div class="comment-approval-list">
+                <div class="comment-approval-list" style="display: flex; flex-direction: column; gap: 2rem;">
                     {% for comment in page_obj %}
                         <div class="card comment-approval-card">
                             <div class="card-body">
                                 <p><strong>Autor:</strong> {{ comment.author.username }}</p>
-                                <p><strong>Produkt:</strong> <a href="{% url 'product_detail' comment.product.id %}">{{ comment.product.name }}</a></p>
+                                <p><strong>Produkt:</strong> <a href="{% url 'product_detail' comment.product.id %}" class="link">{{ comment.product.name }}</a></p>
                                 <p><strong>Data:</strong> {{ comment.created_at|date:"d.m.Y H:i" }}</p>
-                                <div class="comment-content-box">
+                                <div class="comment-content-box" style="padding: 1rem; background: var(--bg); border-radius: 8px; border: 1px solid var(--border);">
                                     {{ comment.content }}
                                 </div>
                             </div>
-                            <div class="card-footer" style="display:flex; gap:.5rem;">
+                            <div class="card-footer">
                                 <form method="post" action="{% url 'approve_comment' comment.id %}" style="display:inline;">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-primary">Zatwierdź</button>
@@ -87,7 +88,7 @@
                     {% endfor %}
                 </div>
             {% elif view_type == 'orders' %}
-                <div class="order-approval-list">
+                 <div class="order-approval-list" style="display: flex; flex-direction: column; gap: 2rem;">
                     {% for order in page_obj %}
                         <div class="card order-approval-card">
                             <div class="card-header">
@@ -95,40 +96,97 @@
                                 <span class="muted">Użytkownik: <strong>{{ order.user.username }}</strong></span>
                             </div>
                             <div class="card-body">
-                                <p><strong>Imię i nazwisko:</strong> {{ order.first_name }} {{ order.last_name }}</p>
-                                <p><strong>Adres:</strong> {{ order.street_address }}, {{ order.city }}</p>
-                                <p><strong>Całkowita kwota:</strong> {{ order.total_price }} PLN</p>
-                                <p><strong>Produkty:</strong></p>
+                                <p><strong>Dane do wysyłki:</strong> {{ order.first_name }} {{ order.last_name }}, {{ order.street_address }}, {{ order.city }}</p>
+                                <p><strong>Metoda płatności:</strong> {{ order.get_payment_method_display }}</p>
                                 <div class="order-products">
                                     {% for item in order.items.all %}
                                         <div class="order-product-item">
                                             {% if item.product.image %}
-                                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="order-product-thumbnail">
+                                                <img src="{{ item.product.image.url }}" class="order-product-thumbnail" alt="{{ item.product.name }}">
+                                            {% else %}
+                                                <div class="order-product-thumbnail" style="background-color: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: var(--muted);">Brak</div>
                                             {% endif %}
-                                            <span>{{ item.quantity }} x {{ item.product.name }}</span>
+                                            <div>
+                                                <p style="margin: 0;">{{ item.product.name }} (x{{ item.quantity }})</p>
+                                                <p style="margin: 0;" class="muted">{{ item.price }} PLN</p>
+                                            </div>
                                         </div>
                                     {% endfor %}
                                 </div>
                             </div>
-                            <div class="card-footer" style="display:flex; gap:.5rem;">
+                            <div class="card-footer">
                                 <form method="post" action="{% url 'approve_order' order.id %}" style="display:inline;">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-primary">Zatwierdź</button>
                                 </form>
-                                <form method="get" action="{% url 'reject_order' order.id %}" style="display:inline;">
-                                    <button type="submit" class="btn btn-ghost">Odrzuć</button>
-                                </form>
+                                <a href="{% url 'reject_order' order.id %}" class="btn btn-ghost">Odrzuć</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% elif view_type == 'all_products' %}
+                <div class="product-approval-list" style="display: flex; flex-direction: column; gap: 2rem;">
+                    {% for product in page_obj %}
+                        <div class="card product-approval-card">
+                            <div class="card-header">
+                                <h3 class="card-title">{{ product.name }}</h3>
+                                <span class="muted">Autor: <strong>{{ product.author.username }}</strong></span>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Status:</strong>
+                                    {% if product.hidden_by_admin %}
+                                        <span style="color: var(--danger, #dc3545); font-weight: 600;">Ukryty przez admina</span>
+                                    {% elif product.is_hidden %}
+                                        <span style="color: var(--accent); font-weight: 600;">Ukryty przez użytkownika</span>
+                                    {% elif product.is_approved %}
+                                        <span style="color: var(--success); font-weight: 600;">Zatwierdzony</span>
+                                    {% elif product.is_approved is None %}
+                                        <span style="font-weight: 600;">Oczekuje na zatwierdzenie</span>
+                                    {% else %}
+                                        <span style="color: var(--danger, #dc3545); font-weight: 600;">Odrzucony</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            {% if product.image %}
+                                <div class="product-image-wrap">
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+                                </div>
+                            {% endif %}
+                            <div class="card-footer">
+                                {% if product.hidden_by_admin %}
+                                    <form method="post" action="{% url 'restore_product_by_admin' product.id %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary">Przywróć</button>
+                                    </form>
+                                {% else %}
+                                    <a href="{% url 'hide_product_by_admin' product.id %}" class="btn btn-ghost">Ukryj</a>
+                                {% endif %}
                             </div>
                         </div>
                     {% endfor %}
                 </div>
             {% endif %}
 
-            {% include '_pagination.html' %}
+            <!-- Paginacja -->
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?view={{ view_type }}&page=1" class="btn btn-ghost">&laquo;</a>
+                    <a href="?view={{ view_type }}&page={{ page_obj.previous_page_number }}" class="btn btn-ghost">‹</a>
+                {% endif %}
+
+                <span class="btn btn-primary">
+                    Strona {{ page_obj.number }} z {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?view={{ view_type }}&page={{ page_obj.next_page_number }}" class="btn btn-ghost">›</a>
+                    <a href="?view={{ view_type }}&page={{ page_obj.paginator.num_pages }}" class="btn btn-ghost">&raquo;</a>
+                {% endif %}
+            </div>
 
         {% else %}
-             <div class="card no-products-card">
-                <h3>Brak elementów do wyświetlenia.</h3>
+            <div class="card placeholder-card" style="padding: 2rem; text-align: center;">
+                <p>Brak elementów do wyświetlenia w tej zakładce.</p>
             </div>
         {% endif %}
     </div>

@@ -87,7 +87,9 @@ class Product(models.Model):
     image = models.ImageField(upload_to='products/', verbose_name='Obraz', null=True, blank=True)
     stock = models.PositiveIntegerField(default=1, verbose_name='Stan magazynowy')
     is_approved = models.BooleanField(default=False, verbose_name='Zatwierdzony')
+    is_hidden = models.BooleanField(default=False, verbose_name="Ukryty")
     created_at = models.DateTimeField(auto_now_add=True)
+    hidden_by_admin = models.BooleanField(default=False, verbose_name="Ukryty przez administratora")
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

@@ -22,7 +22,13 @@
                 </p>
                 <div style="display:flex; gap:.5rem; margin-top: auto;">
                     <a href="{% url 'edit_product' product.id %}" class="btn btn-primary" style="flex:1;">Edytuj</a>
-                    <a href="{% url 'delete_product' product.id %}" class="btn btn-ghost" style="flex:1;">Usuń</a>
+                    <a href="{% url 'toggle_hide_product' product.id %}" class="btn btn-ghost" style="flex:1;">
+                        {% if product.is_hidden %}
+                            Przywróć
+                        {% else %}
+                            Ukryj
+                        {% endif %}
+                    </a>
                 </div>
             </div>
         {% endfor %}

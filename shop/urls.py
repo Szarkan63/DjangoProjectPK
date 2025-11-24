@@ -36,5 +36,12 @@ urlpatterns = [
     path('order/success/', views.order_success, name='order_success'),
     path('approve_order/<int:order_id>/', views.approve_order, name='approve_order'),
     path('reject_order/<int:order_id>/', views.reject_order, name='reject_order'),
+    path('product/<int:product_id>/edit/', views.edit_product, name='edit_product'),
+    path('product/<int:product_id>/delete/', views.delete_product, name='delete_product'),
+    path('product/<int:product_id>/toggle_hide/', views.toggle_hide_product, name='toggle_hide_product'),
+
+    path('manage/product/<int:product_id>/hide/', views.hide_product_by_admin, name='hide_product_by_admin'),
+    path('manage/product/<int:product_id>/restore/', views.restore_product_by_admin, name='restore_product_by_admin'),
+
 ]
 

@@ -6,10 +6,10 @@ from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
 from django.urls import reverse
 
-from .forms import SignUpForm, ProductForm, OrderForm
+from .forms import SignUpForm, ProductForm, OrderForm, HideProductForm
 from django.http import HttpResponse
 
-from .models import Product, Cart, CartItem, Order, Comment, OrderItem
+from .models import Product, Cart, CartItem, Order, Comment, OrderItem, Category
 
 
 @staff_member_required()
@@ -18,11 +18,14 @@ def admin_panel(request):
 
     products_to_approve_list = Product.objects.filter(is_approved=False).order_by('-created_at')
     comments_to_approve_list = Comment.objects.filter(is_approved=False).order_by('-created_at')
-    orders_to_approve_list = Order.objects.filter(status='pending_approval').order_by('-created_at')
+    # Poprawiono prefetch_related na 'items__product'
+    orders_to_approve_list = Order.objects.filter(status='pending_approval').prefetch_related('items__product').order_by('-created_at')
+    all_products_list = Product.objects.all().order_by('-created_at')
 
     products_count = products_to_approve_list.count()
     comments_count = comments_to_approve_list.count()
     orders_count = orders_to_approve_list.count()
+    all_products_count = all_products_list.count()
 
     page_obj = None
     items_per_page = 4
@@ -39,6 +42,10 @@ def admin_panel(request):
         paginator = Paginator(orders_to_approve_list, items_per_page)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
+    elif view_type == 'all_products':
+        paginator = Paginator(all_products_list, items_per_page)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
     context = {
         'view_type': view_type,
@@ -46,8 +53,11 @@ def admin_panel(request):
         'products_to_approve_count': products_count,
         'comments_to_approve_count': comments_count,
         'orders_to_approve_count': orders_count,
+        'all_products_count': all_products_count,
     }
     return render(request, 'admin_panel.html', context)
+
+
 
 
 
@@ -85,27 +95,33 @@ def sell_view(request):
 
 @login_required
 def browse_products(request):
-    """
-    Wyświetla listę wszystkich zatwierdzonych produktów (memów) i liczbę rzeczy w koszyku.
-    """
-    products = Product.objects.filter(is_approved=True).order_by('-created_at')
+    query = request.GET.get('q', '')
+    category_id = request.GET.get('category', '')
+    products = Product.objects.filter(is_approved=True, is_hidden=False, hidden_by_admin=False)
 
-    # Liczba przedmiotów w koszyku
-    try:
-        cart = request.user.cart
-        cart_count = sum(item.quantity for item in cart.items.all())
-        if cart_count > 9:
-            cart_count_display = "9+"
-        else:
-            cart_count_display = str(cart_count)
-    except Cart.DoesNotExist:
-        cart_count_display = "0"
+    if query:
+        products = products.filter(name__icontains=query)
 
-    context = {
+    if category_id:
+        products = products.filter(category_id=category_id)
+
+    categories = Category.objects.all()
+    return render(request, 'browse_products.html', {
         'products': products,
-        'cart_item_count': cart_count_display
-    }
-    return render(request, 'browse_products.html', context)
+        'categories': categories,
+        'selected_category': int(category_id) if category_id else None
+    })
+
+
+
+@login_required
+def toggle_hide_product(request, product_id):
+    product = get_object_or_404(Product, id=product_id, author=request.user)
+    product.is_hidden = not product.is_hidden
+    product.save()
+    return redirect('user_panel')
+
+
 
 
 def signup(request):
@@ -147,29 +163,18 @@ def add_to_cart(request, product_id):
 
 @login_required
 def user_panel(request):
-    user_products = Product.objects.filter(author=request.user).order_by('-created_at')
+    user = request.user
+    # Filtrujemy produkty, które nie są ukryte przez admina
+    user_products = Product.objects.filter(author=user, hidden_by_admin=False).order_by('-created_at')
+    user_orders = Order.objects.filter(user=user).order_by('-created_at')
+    user_notifications = Notification.objects.filter(user=user).order_by('-created_at')
 
-    # Poprawione prefetch_related – teraz zgodne z related_name='items'
-    user_orders = (
-        Order.objects
-        .filter(user=request.user)
-        .prefetch_related('items__product')
-        .order_by('-created_at')
-    )
-
-    # Pobieranie powiadomień użytkownika
-    user_notifications = request.user.notifications.order_by('-created_at')
-
-    context = {
+    return render(request, 'user_panel.html', {
         'user_products': user_products,
         'user_orders': user_orders,
         'user_notifications': user_notifications,
-    }
+    })
 
-    # Oznaczanie powiadomień jako przeczytane po ich pobraniu
-    request.user.notifications.update(is_read=True)
-
-    return render(request, 'user_panel.html', context)
 
 
 
@@ -303,12 +308,71 @@ def approve_comment(request, comment_id):
 
 @login_required
 def reject_comment(request, comment_id):
-    if not request.user.is_staff:
-        return redirect('home')
     comment = get_object_or_404(Comment, id=comment_id)
-    comment.delete()
-    messages.success(request, "Komentarz został usunięty.")
-    return redirect(f"{reverse('admin_panel')}?view=comments")
+    if request.user.profile.role != 'admin':
+        return redirect('home')
+
+    comment.is_approved = False
+    comment.save()
+
+    # Utworzenie powiadomienia dla autora komentarza
+    Notification.objects.create(
+        user=comment.author,
+        message=f'Twój komentarz do produktu "{comment.product.name}" został odrzucony.'
+    )
+
+    return redirect('admin_panel', view='comments')
+
+
+
+
+@staff_member_required
+def hide_product_by_admin(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    if request.method == 'POST':
+        form = HideProductForm(request.POST)
+        if form.is_valid():
+            reason = form.cleaned_data['reason']
+            product.hidden_by_admin = True
+            product.save()
+
+            if product.author:
+                Notification.objects.create(
+                    user=product.author,
+                    message=f'Twoje ogłoszenie "{product.name}" zostało ukryte przez administratora z powodu: {reason}'
+                )
+
+            redirect_url = reverse('admin_panel') + '?view=all_products'
+            return redirect(redirect_url)
+    else:
+        form = HideProductForm()
+
+    return render(request, 'hide_product_by_admin.html', {'form': form, 'product': product})
+
+
+
+@staff_member_required
+def restore_product_by_admin(request, product_id):
+    """
+    Przywraca produkt, który został wcześniej ukryty przez administratora,
+    i wysyła powiadomienie do autora ogłoszenia.
+    """
+    product = get_object_or_404(Product, id=product_id)
+    product.hidden_by_admin = False
+    product.save()
+
+    # Utworzenie powiadomienia dla autora ogłoszenia
+    if product.author:
+        Notification.objects.create(
+            user=product.author,
+            message=f'Dobra wiadomość! Twoje ogłoszenie "{product.name}" zostało przywrócone przez administratora i jest ponownie widoczne w serwisie.'
+        )
+
+    # Przekierowanie z powrotem do panelu admina z odpowiednim widokiem
+    redirect_url = reverse('admin_panel') + '?view=all_products'
+    return redirect(redirect_url)
+
+
 
 
 @login_required
@@ -355,7 +419,7 @@ def order_success(request):
 @staff_member_required
 def approve_order(request, order_id):
     order = get_object_or_404(Order, id=order_id)
-    order.status = 'pending'
+    order.status = 'processing'
     order.save()
     Notification.objects.create(
         user=order.user,

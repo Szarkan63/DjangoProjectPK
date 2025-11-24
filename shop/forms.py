@@ -58,3 +58,7 @@ class OrderForm(forms.ModelForm):
             'payment_method': forms.Select(attrs={'class': 'form-control'}),
         }
 
+class HideProductForm(forms.Form):
+    reason = forms.CharField(widget=forms.Textarea, label="Powód ukrycia")
+
+
