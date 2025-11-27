@@ -79,10 +79,7 @@
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-primary">Zatwierdź</button>
                                 </form>
-                                <form method="post" action="{% url 'reject_comment' comment.id %}" style="display:inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-ghost">Odrzuć</button>
-                                </form>
+                                <a href="{% url 'reject_comment' comment.id %}" class="btn btn-ghost">Odrzuć</a>
                             </div>
                         </div>
                     {% endfor %}

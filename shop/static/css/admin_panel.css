@@ -114,3 +114,34 @@
     justify-content: center;
     gap: .5rem;
 }
+
+/* Miniatury produktów w zamówieniach — także ujednolicone */
+.order-product-thumbnail {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+/* --- Media Queries dla responsywności --- */
+@media (max-width: 768px) {
+    .admin-panel-wrap {
+        padding: 1rem; /* Mniejszy padding */
+    }
+
+    .product-approval-card,
+    .comment-approval-card,
+    .order-approval-card {
+        padding: 1rem; /* Mniejszy padding wewnątrz kart */
+    }
+
+    .card-header {
+        flex-direction: column; /* Ustawienie pionowego układu dla nagłówka karty */
+        align-items: flex-start;
+    }
+
+    .product-image {
+        width: 100%; /* Obrazek na całą szerokość */
+        height: auto;   /* Automatyczna wysokość */
+    }
+}

@@ -62,3 +62,6 @@ class HideProductForm(forms.Form):
     reason = forms.CharField(widget=forms.Textarea, label="Powód ukrycia")
 
 
+
+
+

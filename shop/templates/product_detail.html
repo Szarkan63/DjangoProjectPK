@@ -31,34 +31,42 @@
         </div>
     </div>
 
-    <div class="comments-section">
-        <h2>Komentarze</h2>
-
-        {% if comments %}
-            <div class="comments-list">
-                {% for comment in comments %}
-                    <div class="comment">
-                        <div class="comment-avatar"></div>
-                        <div class="comment-content">
+    <div class="comments-section" style="margin-top: 30px; width: 100%;">
+            <h3>Komentarze</h3>
+            {% for comment in product.comments.all %}
+                {% if comment.is_approved or request.user == comment.author %}
+                    <div class="comment-card" style="padding: 1rem; margin-bottom: 1rem; border: 1px solid var(--pd-border); border-radius: 8px; background: var(--pd-card-bg);">
+                        <p>
                             <strong>{{ comment.author.username }}</strong>
-                            <span class="date">{{ comment.created_at|date:"d.m.Y H:i" }}</span>
-                            <p>{{ comment.content }}</p>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p class="muted">Brak komentarzy. Bądź pierwszy!</p>
-        {% endif %}
+                            <small style="color: var(--text-inv);">{{ comment.created_at|date:"d M Y H:i" }}</small>
 
-        <div class="add-comment">
-            <h3>Dodaj komentarz</h3>
-            <form action="" method="post">
-                {% csrf_token %}
-                <textarea name="content" rows="3" placeholder="Napisz coś..." required></textarea>
-                <button type="submit" class="btn btn-primary mt-sm">Dodaj</button>
-            </form>
+                            {% if not comment.is_approved %}
+                                <span style="color: #e67e22; font-weight: bold; margin-left: 10px;">
+                                    (Komentarz czeka na zatwierdzenie)
+                                </span>
+                            {% endif %}
+                        </p>
+                        <p>{{ comment.content }}</p>
+                    </div>
+                {% endif %}
+            {% empty %}
+                <p>Brak komentarzy dla tego produktu.</p>
+            {% endfor %}
+
+            <!-- Formularz dodawania komentarza (jeśli zalogowany) -->
+            {% if user.is_authenticated %}
+                <form method="post" style="margin-top: 20px;">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <textarea name="content" rows="3" class="form-control" placeholder="Dodaj komentarz..." required style="width: 100%; padding: 10px;"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Dodaj komentarz</button>
+                </form>
+            {% else %}
+                <p><a href="{% url 'login' %}">Zaloguj się</a>, aby dodać komentarz.</p>
+            {% endif %}
         </div>
-    </div>
-</div>
+    </div> <!-- Zamknięcie product-card -->
+</div> <!-- Zamknięcie product-detail-container -->
 {% endblock %}
+

@@ -1,0 +1,63 @@
+/* Struktura drzewa kategorii */
+.category-tree {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.category-tree ul {
+    list-style-type: none;
+    padding-left: 1.5rem;
+    margin-top: 0.25rem;
+    border-left: 2px solid var(--border);
+}
+
+.category-item {
+    margin: 0.5rem 0;
+}
+
+.category-link {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    text-decoration: none;
+    color: var(--link);
+    border-radius: var(--radius);
+    transition: background-color 0.2s, color 0.2s;
+    font-weight: 600;
+}
+
+.category-link:hover {
+    background-color: var(--elev-1);
+    color: var(--primary);
+}
+
+/* Styl dla aktywnej/wybranej kategorii */
+.category-link.active {
+    background-color: var(--primary);
+    color: var(--text-inv);
+    font-weight: 700;
+}
+
+/* Styl dla podkategorii */
+.subcategory-link {
+    color: var(--muted);
+    font-weight: 400;
+}
+
+.subcategory-link:hover {
+    color: var(--primary);
+}
+
+.subcategory-link.active {
+    color: var(--text-inv);
+    font-weight: 600;
+}
+
+/* Tytuł sekcji filtrów */
+.filter-header {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+}

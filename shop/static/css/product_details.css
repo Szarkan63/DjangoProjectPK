@@ -165,3 +165,28 @@
     border-radius: 12px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
+
+/* --- Media Queries dla responsywności --- */
+@media (max-width: 768px) {
+    .product-detail-container {
+        padding: 1rem; /* Mniejszy padding na małych ekranach */
+        margin: 1rem auto;
+    }
+
+    .product-card {
+        flex-direction: column; /* Ustawienie pionowego układu dla karty produktu */
+        align-items: center;   /* Wycentrowanie zawartości */
+    }
+
+    .product-image {
+        max-width: 100%; /* Obrazek na całą szerokość kontenera */
+    }
+
+    .product-info h1 {
+        font-size: 1.5rem; /* Zmniejszenie rozmiaru głównego nagłówka */
+    }
+
+    .price {
+        font-size: 1.2rem; /* Zmniejszenie ceny */
+    }
+}

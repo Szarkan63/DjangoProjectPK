@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 {% load static %}
 
@@ -6,48 +5,109 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/product_grid.css' %}">
+    <link rel="stylesheet" href="{% static 'css/category_tree.css' %}">
+    <style>
+        .browse-container {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        .filters-sidebar {
+            position: sticky;
+            top: 80px; /* Wysokość nagłówka + margines */
+        }
+
+        .search-form {
+            margin-bottom: 1.5rem;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="browse-header">
         <h1>Przeglądaj Memy</h1>
-        <p class="mb-lg">Oto najnowsze memy wystawione na sprzedaż. Wybierz coś dla siebie!</p>
+        <p>Oto najnowsze memy wystawione na sprzedaż. Wybierz coś dla siebie!</p>
     </div>
 
-    {% if products %}
-        <div class="product-grid">
-            {% for product in products %}
-                <div class="card">
-                    {% if product.image %}
-    <div class="card-image-container">
-        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-image">
-    </div>
-{% endif %}
+    <div class="browse-container">
+        <aside class="filters-sidebar">
+            <form method="get" action="{% url 'browse_products' %}" class="search-form">
+                <input class="input" type="text" name="q" placeholder="Szukaj po nazwie..." value="{{ request.GET.q|default:'' }}">
+                {% if selected_category_id %}
+                    <input type="hidden" name="category" value="{{ selected_category_id }}">
+                {% endif %}
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: .5rem">Szukaj</button>
+            </form>
 
-                    <div class="card-content">
-                        <h3 class="card-title">
-    <a href="{% url 'product_detail' product.id %}" class="product-link">
-        {{ product.name }}
-    </a>
-</h3>
-                        <p class="muted">Kategoria: {{ product.category }}</p>
-                        <p class="muted">Sprzedający: {{ product.author.username }}</p>
-                        <p class="muted">Opis: {{ product.description }}</p>
-                        <div class="card-footer">
-                            <span class="price">{{ product.price }} PLN</span>
-                            <form action="{% url 'add_to_cart' product.id %}" method="post">
-    {% csrf_token %}
-    <button type="submit" class="btn btn-primary">Dodaj do koszyka</button>
-</form>
+            <h2 class="filter-header">Kategorie</h2>
+            <ul class="category-tree">
+                <li class="category-item">
+                    <a href="{% url 'browse_products' %}{% if request.GET.q %}?q={{ request.GET.q }}{% endif %}"
+                       class="category-link {% if not selected_category_id %}active{% endif %}">
+                       Wszystkie
+                    </a>
+                </li>
+                {% for category in categories %}
+                    <li class="category-item">
+                        <a href="?category={{ category.id }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+                           class="category-link {% if category.id == selected_category_id %}active{% endif %}">
+                            {{ category.name }}
+                        </a>
+                        {% if category.subcategories.all %}
+                            <ul>
+                                {% for subcategory in category.subcategories.all %}
+                                    <li class="category-item">
+                                        <a href="?category={{ subcategory.id }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+                                           class="category-link subcategory-link {% if subcategory.id == selected_category_id %}active{% endif %}">
+                                            {{ subcategory.name }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </aside>
+
+        <main class="product-section">
+            {% if products %}
+                <div class="product-grid">
+                    {% for product in products %}
+                        <div class="card">
+                            {% if product.image %}
+                                <div class="card-image-container">
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="card-image">
+                                </div>
+                            {% endif %}
+                            <div class="card-content">
+                                <h3 class="card-title">
+                                    <a href="{% url 'product_detail' product.id %}" class="product-link">
+                                        {{ product.name }}
+                                    </a>
+                                </h3>
+                                <p class="muted">Kategoria: {{ product.category }}</p>
+                                <p class="muted">Sprzedający: {{ product.author.username }}</p>
+                                <p class="muted">{{ product.description|truncatewords:15 }}</p>
+                                <div class="card-footer">
+                                    <span class="price">{{ product.price }} PLN</span>
+                                    <form action="{% url 'add_to_cart' product.id %}" method="post">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-primary">Dodaj do koszyka</button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <p>Wygląda na to, że nie ma jeszcze żadnych memów na sprzedaż. Bądź pierwszy i <a href="{% url 'sell' %}">wystaw coś na sprzedaż</a>!</p>
-    {% endif %}
+            {% else %}
+                <p>Brak memów spełniających podane kryteria. Spróbuj wyszukać inaczej lub <a href="{% url 'browse_products' %}">wyczyść filtry</a>.</p>
+                <p>Możesz też być pierwszy i <a href="{% url 'sell' %}">wystawić coś na sprzedaż</a>!</p>
+            {% endif %}
+        </main>
+    </div>
 </div>
-
 {% endblock %}

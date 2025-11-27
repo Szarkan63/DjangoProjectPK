@@ -14,14 +14,14 @@
     padding: 0; /* usuwamy marginesy */
 }
 
-/* Siatka produktów – karty stykają się */
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 0; /* brak odstępów między kartami */
     justify-items: stretch;
     align-items: stretch;
 }
+
 
 /* Karta produktu */
 .card {

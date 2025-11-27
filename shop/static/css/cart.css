@@ -149,9 +149,6 @@
     padding: 4rem 1rem;
 }
 
-/* ================================
-   RESPONSYWNOŚĆ
-   ================================ */
 @media (max-width: 768px) {
     .product-cell {
         flex-direction: column;

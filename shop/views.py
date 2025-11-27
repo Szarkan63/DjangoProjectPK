@@ -7,7 +7,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.urls import reverse
 
 from .forms import SignUpForm, ProductForm, OrderForm, HideProductForm
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 
 from .models import Product, Cart, CartItem, Order, Comment, OrderItem, Category
 
@@ -95,22 +95,47 @@ def sell_view(request):
 
 @login_required
 def browse_products(request):
-    query = request.GET.get('q', '')
-    category_id = request.GET.get('category', '')
-    products = Product.objects.filter(is_approved=True, is_hidden=False, hidden_by_admin=False)
+    products = Product.objects.filter(is_approved=True, is_hidden=False)
+    # Pobieramy tylko kategorie nadrzędne, a podkategorie przez prefetch_related
+    categories = Category.objects.filter(parent=None).prefetch_related('subcategories')
+
+    query = request.GET.get('q')
+    category_id = request.GET.get('category')
 
     if query:
         products = products.filter(name__icontains=query)
 
     if category_id:
-        products = products.filter(category_id=category_id)
+        try:
+            category = Category.objects.get(id=category_id)
+            # Jeśli kategoria ma podkategorie, filtrujemy też po nich
+            if category.subcategories.exists():
+                subcategories = category.subcategories.all()
+                categories_to_filter = [category] + list(subcategories)
+                products = products.filter(category__in=categories_to_filter)
+            else:
+                # To jest podkategoria lub kategoria bez dzieci
+                products = products.filter(category=category)
+        except Category.DoesNotExist:
+            # Ignoruj nieprawidłowy ID kategorii
+            pass
 
-    categories = Category.objects.all()
-    return render(request, 'browse_products.html', {
+    products = products.order_by('-created_at')
+
+    selected_category_id = None
+    if category_id:
+        try:
+            selected_category_id = int(category_id)
+        except (ValueError, TypeError):
+            pass
+
+    context = {
         'products': products,
         'categories': categories,
-        'selected_category': int(category_id) if category_id else None
-    })
+        'selected_category_id': selected_category_id,
+        'query': query
+    }
+    return render(request, 'browse_products.html', context)
 
 
 
@@ -298,30 +323,43 @@ def product_detail(request, product_id):
 
 @login_required
 def approve_comment(request, comment_id):
-    if not request.user.is_staff:
-        return redirect('home')
+    """
+    Zatwierdza komentarz i wysyła powiadomienie do autora.
+    """
     comment = get_object_or_404(Comment, id=comment_id)
-    comment.is_approved = True
-    comment.save()
-    messages.success(request, f"Komentarz do '{comment.product.name}' został zatwierdzony.")
-    return redirect(f"{reverse('admin_panel')}?view=comments")
+
+    if not comment.is_approved:
+        comment.is_approved = True
+        comment.save()
+
+        # Tworzenie powiadomienia dla autora komentarza
+        Notification.objects.create(
+            user=comment.author,
+            message=f"Twój komentarz do produktu '{comment.product.name}' został zatwierdzony przez administratora."
+        )
+
+    # Przekierowanie z powrotem do panelu administratora lub strony produktu
+    return redirect('admin_panel')
+
 
 @login_required
 def reject_comment(request, comment_id):
+    """
+    Odrzuca komentarz przez administratora z podaniem powodu.
+    """
     comment = get_object_or_404(Comment, id=comment_id)
-    if request.user.profile.role != 'admin':
-        return redirect('home')
+    if request.method == 'POST':
+        reason = request.POST.get('reason')
+        if reason:
+            Notification.objects.create(
+                user=comment.author,
+                message=f"Twój komentarz do produktu '{comment.product.name}' został odrzucony. Powód: {reason}"
+            )
+        comment.delete()
+        # Przekieruj z powrotem do panelu admina z widokiem na komentarze
+        return redirect('admin_panel')
+    return render(request, 'reject_comment.html', {'comment': comment})
 
-    comment.is_approved = False
-    comment.save()
-
-    # Utworzenie powiadomienia dla autora komentarza
-    Notification.objects.create(
-        user=comment.author,
-        message=f'Twój komentarz do produktu "{comment.product.name}" został odrzucony.'
-    )
-
-    return redirect('admin_panel', view='comments')
 
 
 

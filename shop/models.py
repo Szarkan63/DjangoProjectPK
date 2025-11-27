@@ -29,16 +29,24 @@ class Profile(models.Model):
 
 class Category(models.Model):
     """
-    Model kategorii dla produktów.
+    Model reprezentujący kategorię produktu.
     """
-    name = models.CharField(max_length=100, unique=True, verbose_name='Nazwa')
-    description = models.TextField(blank=True, verbose_name='Opis')
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subcategories')
 
     class Meta:
         verbose_name_plural = "Categories"
+        ordering = ('name',)
 
     def __str__(self):
-        return self.name
+        full_path = [self.name]
+        k = self.parent
+        while k is not None:
+            full_path.append(k.name)
+            k = k.parent
+        return ' -> '.join(full_path[::-1])
+
 
 
 class ModeratorCategory(models.Model):
@@ -61,6 +69,7 @@ class Product(models.Model):
     Model produktu (lub posta).
     """
     image = models.ImageField(upload_to='products/', verbose_name='Obraz', null=True, blank=True)
+
 
     # Rozmiar docelowy obrazów (np. 600x600 px)
     TARGET_WIDTH = 600
@@ -210,3 +219,5 @@ class Notification(models.Model):
 
     def __str__(self):
         return f'Powiadomienie dla {self.user.username}'
+
+
